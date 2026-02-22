@@ -4,9 +4,17 @@ project(GranularSynth VERSION 1.0.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Find JUCE
-find_package(JUCE CONFIG REQUIRED)
+# ── Download JUCE automatically ──────────────────────────────────────────────
+include(FetchContent)
+FetchContent_Declare(
+    JUCE
+    GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
+    GIT_TAG        7.0.5
+    GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(JUCE)
 
+# ── Plugin target ─────────────────────────────────────────────────────────────
 juce_add_plugin(GranularSynth
     COMPANY_NAME "IndieGrain"
     PLUGIN_MANUFACTURER_CODE "IGrn"
@@ -37,12 +45,11 @@ target_compile_definitions(GranularSynth
         JUCE_DISPLAY_SPLASH_SCREEN=0
         JUCE_ALSA=0
         JUCE_JACK=0
+        # Use JUCE's built-in codec implementations (no system libs needed)
+        JUCE_USE_FLAC=1
+        JUCE_USE_OGGVORBIS=1
+        JUCE_USE_MP3AUDIOFORMAT=1
 )
-
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(FLAC    REQUIRED flac)
-pkg_check_modules(VORBIS  REQUIRED vorbis)
-pkg_check_modules(OGG     REQUIRED ogg)
 
 target_link_libraries(GranularSynth
     PRIVATE
@@ -52,11 +59,6 @@ target_link_libraries(GranularSynth
         juce::juce_dsp
         juce::juce_gui_basics
         juce::juce_gui_extra
-        ${FLAC_LIBRARIES}
-        ${VORBIS_LIBRARIES}
-        ${OGG_LIBRARIES}
-        vorbisfile
-        vorbisenc
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
